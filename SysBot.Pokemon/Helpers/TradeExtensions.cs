@@ -15,8 +15,8 @@ public abstract class TradeExtensions<T> where T : PKM, new()
 
     private static readonly string[] AllowedDomains =
 {
-    "freemons.org",
-    "genpkm.com"
+    "PkmCafe.com",
+    "https://discord.gg/NSider"
 };
 
     private static readonly ushort[] ExplicitlyBlockedHeldItems =
@@ -224,7 +224,7 @@ public abstract class TradeExtensions<T> where T : PKM, new()
         match = "";
         var lower = input.ToLowerInvariant();
 
-        // Allow only FreeMons.Org or GenPKM.com
+        // Allow only PkmCafe.com or NSider.com
         foreach (var domain in AllowedDomains)
         {
             if (lower.Contains(domain))

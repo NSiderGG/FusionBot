@@ -14,7 +14,7 @@ public class LegalitySettings
 
     private const string Misc = nameof(Misc);
 
-    private string DefaultTrainerName = "FreeMons.Org";
+    private string DefaultTrainerName = "NSider.co";
 
     [HubCategory(Generate), HubDescription("LegalitySettings_AllowBatchCommands_Description")]
     public bool AllowBatchCommands { get; set; } = true;

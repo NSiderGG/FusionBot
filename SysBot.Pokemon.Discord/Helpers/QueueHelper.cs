@@ -582,7 +582,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 if (!string.IsNullOrEmpty(userDetailsText))
                     footerText += $"\n{userDetailsText}";
                 footerText += $"\nWait Estimate: {baseEta:F1} min(s) for batch";
-                footerText += $"\nFusionBot {TradeBot.Version}";
+                footerText += $"\nBot Hosted by PkmCafe.com - {TradeBot.Version}";
 
                 var embedBuilder = new EmbedBuilder()
                     .WithColor(DiscordColor.Gold)
@@ -707,7 +707,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 if (!string.IsNullOrEmpty(userDetailsText))
                     footerText += $"\n{userDetailsText}";
                 footerText += $"\nWait Estimate: {baseEta:F1} min(s) for batch";
-                footerText += $"\nFusionBot {TradeBot.Version}";
+                footerText += $"\nBot Hosted by PkmCafe.com - {TradeBot.Version}";
 
                 var embedBuilder = new EmbedBuilder()
                     .WithColor(DiscordColor.Gold)
