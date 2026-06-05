@@ -176,11 +176,11 @@ namespace SysBot.Pokemon.WinForms
                 {
                     try
                     {
-                        btn.Font = FontManager.Get("Enter The Grid", 13.8F);
+                        btn.Font = FontManager.GetButton("Enter The Grid", 13.8F);
                     }
                     catch
                     {
-                        btn.Font = new Font(FontFamily.GenericSansSerif, 13.8F);
+                        btn.Font = FontManager.ScaleForLanguage(new Font(FontFamily.GenericSansSerif, 13.8F));
                     }
                 }
 
@@ -586,7 +586,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Routine Selection
             var routines = ((PokeRoutineType[])Enum.GetValues(typeof(PokeRoutineType))).Where(z => RunningEnvironment.SupportsRoutine(z)) // Get all routine types
-                .Select(z => new { Text = z.ToString(), Value = (int)z }).ToList(); // Create a list of routine types with their text and value
+                .Select(z => new { Text = Strings.Get("Routine_" + z, z.ToString()), Value = (int)z }).ToList(); // Create a localized list of routine types with their text and value
             _botsForm.RoutineBox.DisplayMember = "Text";                            // Set the display text for the RoutineBox
             _botsForm.RoutineBox.ValueMember = "Value";                             // Set the value number for the RoutineBox (Flextrade, etc.)
             _botsForm.RoutineBox.DataSource = routines;                             // Bind the RoutineBox to the list of routine types (Dropdown list)
@@ -839,6 +839,19 @@ namespace SysBot.Pokemon.WinForms
 
             CB_Themes.SelectedItem = Config.Theme;
             ThemeManager.ApplyTheme(this, Config.Theme);
+        }
+
+        /// <summary>
+        /// Re-applies the current theme to the child forms (Bots/Hub/Logs) and their
+        /// nested controls. Called by <see cref="ThemeManager.ApplyTheme(Main, string)"/>
+        /// whenever the theme changes so the whole UI stays in sync.
+        /// </summary>
+        public void RefreshChildThemes()
+        {
+            _botsForm?.ApplyTheme();
+            _logsForm?.ApplyTheme();
+            if (_hubForm is { IsDisposed: false })
+                _hubForm.ApplyTheme();
         }
 
 
@@ -1329,7 +1342,7 @@ namespace SysBot.Pokemon.WinForms
             // Update top panel
             lblTitleChildForm.Text = btn.Text;
             childFormIcon.IconChar = btn.IconChar;
-            childFormIcon.IconColor = outlineColor;
+            childFormIcon.IconColor = Color.White; // titlebar icon stays white regardless of the active form's accent
         }
 
 

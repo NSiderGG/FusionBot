@@ -1,5 +1,6 @@
 using SysBot.Base;
 using SysBot.Pokemon.WinForms.Controls;
+using SysBot.Pokemon.WinForms.Localization;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -50,6 +51,7 @@ public partial class BotController : UserControl
     public BotController()
     {
         InitializeComponent();
+        btnActions.Text = "▶ " + Strings.Get("BotMenu_Button", "MENU");
         InitializeContextMenu();
 
         this.Margin = new Padding(0);
@@ -105,6 +107,38 @@ public partial class BotController : UserControl
             _progressFill.Invalidate();
         };
         _sparkleTimer.Start();
+
+        ApplyTheme();
+    }
+
+    /// <summary>
+    /// Recolors this controller's surfaces to the currently selected theme.
+    /// Status/progress indicator colors (the glow dot, progress gradient, status
+    /// text) are intentionally left alone since they convey bot state, not decoration.
+    /// </summary>
+    public void ApplyTheme()
+    {
+        var colors = ThemeManager.CurrentColors;
+
+        BackColor = colors.ControlBackground;
+        rtbBotMeta.BackColor = colors.ControlBackground;
+        rtbBotMeta.ForeColor = colors.ForeColor;
+
+        if (_progressBarContainer != null)
+            _progressBarContainer.BackColor = colors.ControlBackground;
+
+        btnActions.BackColor = colors.PanelBase;
+        btnActions.ForeColor = colors.ForeColor;
+        btnActions.FlatAppearance.BorderColor = colors.Border;
+        btnActions.FlatAppearance.MouseOverBackColor = colors.Highlight;
+        btnActions.FlatAppearance.MouseDownBackColor = colors.Border;
+
+        // Text labels follow the theme foreground (lblStatus stays state-colored).
+        lblConnectionName.ForeColor = colors.ForeColor;
+        if (lblConnectionInfo != null)
+            lblConnectionInfo.ForeColor = colors.ForeColor;
+        if (lblRoutine != null)
+            lblRoutine.ForeColor = colors.ForeColor;
     }
 
     private void _progressFill_Paint(object? sender, PaintEventArgs e)
@@ -202,7 +236,7 @@ public partial class BotController : UserControl
         base.OnPaint(e);
 
         // Draw background bar
-        using (SolidBrush backBrush = new SolidBrush(Color.FromArgb(20, 19, 57)))
+        using (SolidBrush backBrush = new SolidBrush(ThemeManager.CurrentColors.ControlBackground))
         {
             e.Graphics.FillRectangle(backBrush, 0, Height - 4, Width, 4);
         }
@@ -241,38 +275,49 @@ public partial class BotController : UserControl
     {
         RCMenu.Items.Clear();
 
+        // Localized menu labels (kept in variables so the colorMap keys stay in sync with the displayed text)
+        string startText = "▶️ " + Strings.Get("BotMenu_Start", "Start");
+        string stopText = "⏹️ " + Strings.Get("BotMenu_Stop", "Stop");
+        string idleText = "⏸️ " + Strings.Get("BotMenu_Idle", "Idle");
+        string resumeText = "🔼 " + Strings.Get("BotMenu_Resume", "Resume");
+        string restartText = "🔁 " + Strings.Get("BotMenu_Restart", "Restart");
+        string rebootText = "🔄 " + Strings.Get("BotMenu_Reboot", "Reboot");
+        string screenOnText = "💡 " + Strings.Get("BotMenu_ScreenOn", "Screen On");
+        string screenOffText = "🌑 " + Strings.Get("BotMenu_ScreenOff", "Screen Off");
+        string removeText = "⛔ " + Strings.Get("BotMenu_Remove", "Remove");
+
         // Your color map for the menu text
         var colorMap = new Dictionary<string, Color>
     {
-        { "▶️ Start Bot", Color.LimeGreen },
-        { "⏹️ Stop Bot", Color.IndianRed },
-        { "⏸️ Idle Bot", Color.White },
-        { "🔼 Resume Bot", Color.White },
-        { "🔁 Restart Bot", Color.White },
-        { "🔄 Reboot + Stop", Color.White },
-        { "💡 Turn Screen On", Color.White },
-        { "🌑 Turn Screen Off", Color.White },
-        { "⛔ Remove Bot", Color.IndianRed }
+        { startText, Color.LimeGreen },
+        { stopText, Color.IndianRed },
+        { idleText, Color.White },
+        { resumeText, Color.White },
+        { restartText, Color.White },
+        { rebootText, Color.White },
+        { screenOnText, Color.White },
+        { screenOffText, Color.White },
+        { removeText, Color.IndianRed }
     };
 
-        AddMenuItem("▶️ Start Bot", BotControlCommand.Start);
-        AddMenuItem("⏹️ Stop Bot", BotControlCommand.Stop);
-        AddMenuItem("⏸️ Idle Bot", BotControlCommand.Idle);
-        AddMenuItem("🔼 Resume Bot", BotControlCommand.Resume);
+        AddMenuItem(startText, BotControlCommand.Start);
+        AddMenuItem(stopText, BotControlCommand.Stop);
+        AddMenuItem(idleText, BotControlCommand.Idle);
+        AddMenuItem(resumeText, BotControlCommand.Resume);
 
         RCMenu.Items.Add(new ToolStripSeparator());
 
-        AddMenuItem("🔁 Restart Bot", BotControlCommand.Restart);
-        AddMenuItem("🔄 Reboot + Stop", BotControlCommand.RebootAndStop);
+        AddMenuItem(restartText, BotControlCommand.Restart);
+        AddMenuItem(rebootText, BotControlCommand.RebootAndStop);
 
         RCMenu.Items.Add(new ToolStripSeparator());
 
-        AddMenuItem("💡 Turn Screen On", BotControlCommand.ScreenOn);
-        AddMenuItem("🌑 Turn Screen Off", BotControlCommand.ScreenOff);
+        AddMenuItem(screenOnText, BotControlCommand.ScreenOn);
+        AddMenuItem(screenOffText, BotControlCommand.ScreenOff);
 
         RCMenu.Items.Add(new ToolStripSeparator());
 
-        var remove = new ToolStripMenuItem("⛔ Remove Bot");
+        var remove = new ToolStripMenuItem(removeText);
         remove.Click += (_, __) => TryRemove();
         RCMenu.Items.Add(remove);
 
@@ -329,8 +374,11 @@ public partial class BotController : UserControl
     private class ColoredMenuRenderer : ToolStripProfessionalRenderer
     {
         private readonly Dictionary<string, Color> _colorMap;
-        private readonly Color _backgroundColor = Color.FromArgb(20, 19, 57);
         private readonly int _leftPadding = 22; // padding from left edge
+
+        // Pulled live so the menu follows theme changes without rebuilding it.
+        private static Color BackgroundColor => ThemeManager.CurrentColors.ControlBackground;
+        private static Color SelectedColor => ThemeManager.CurrentColors.Highlight;
 
         public ColoredMenuRenderer(Dictionary<string, Color> colorMap)
         {
@@ -339,13 +387,13 @@ public partial class BotController : UserControl
 
         protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
         {
-            using var brush = new SolidBrush(_backgroundColor);
+            using var brush = new SolidBrush(BackgroundColor);
             e.Graphics.FillRectangle(brush, e.AffectedBounds);
         }
 
         protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
         {
-            Color bg = e.Item.Selected ? Color.Cyan : _backgroundColor;
+            Color bg = e.Item.Selected ? SelectedColor : BackgroundColor;
             using var brush = new SolidBrush(bg);
             e.Graphics.FillRectangle(brush, e.Item.ContentRectangle);
         }
@@ -457,7 +505,7 @@ public partial class BotController : UserControl
         {
             rtbBotMeta.SelectionFont = new Font(FontFamily.GenericSansSerif, 9F, FontStyle.Bold);
         }
-        rtbBotMeta.SelectionColor = Color.White;
+        rtbBotMeta.SelectionColor = ThemeManager.CurrentColors.ForeColor;
         rtbBotMeta.AppendText(topLine);
     }
 
@@ -499,7 +547,7 @@ public partial class BotController : UserControl
         // Fade between BACKGROUND COLOR and _glowBaseColor
         float t = (_glowPhase - min) / (max - min);
 
-        Color background = Color.FromArgb(20, 19, 57);
+        Color background = ThemeManager.CurrentColors.ControlBackground;
         int r = (int)(background.R + (_glowBaseColor.R - background.R) * t);
         int g = (int)(background.G + (_glowBaseColor.G - background.G) * t);
         int b = (int)(background.B + (_glowBaseColor.B - background.B) * t);

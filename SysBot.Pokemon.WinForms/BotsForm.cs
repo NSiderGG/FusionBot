@@ -198,7 +198,7 @@ namespace SysBot.Pokemon.WinForms
 
             _CB_Routine = new ComboBox { Location = new Point(294, 57), Width = 120, DropDownStyle = ComboBoxStyle.DropDownList, BackColor = Color.FromArgb(20, 19, 57), ForeColor = whiteText };
             var routines = ((PokeRoutineType[])Enum.GetValues(typeof(PokeRoutineType)))
-                .Select(z => new { Text = z.ToString(), Value = (int)z }).ToArray();
+                .Select(z => new { Text = Strings.Get("Routine_" + z, z.ToString()), Value = (int)z }).ToArray();
             _CB_Routine.DisplayMember = "Text";
             _CB_Routine.ValueMember = "Value";
             _CB_Routine.DataSource = routines;
@@ -206,7 +206,15 @@ namespace SysBot.Pokemon.WinForms
             StyleComboBox(_CB_Routine);
 
             _CB_GameMode = new ComboBox { Location = new Point(485, 57), Size = new Size(86, 40), DropDownStyle = ComboBoxStyle.DropDownList, BackColor = Color.FromArgb(20, 19, 57), ForeColor = whiteText };
-            _CB_GameMode.Items.AddRange(new object[] { "SWSH", "BDSP", "PLA", "SV", "LGPE", "PLZA" });
+            _CB_GameMode.Items.AddRange(new object[]
+            {
+                new GameModeItem("SWSH", GameModeDisplay("SWSH")),
+                new GameModeItem("BDSP", GameModeDisplay("BDSP")),
+                new GameModeItem("PLA",  GameModeDisplay("PLA")),
+                new GameModeItem("SV",   GameModeDisplay("SV")),
+                new GameModeItem("LGPE", GameModeDisplay("LGPE")),
+                new GameModeItem("PLZA", GameModeDisplay("PLZA")),
+            });
             _CB_GameMode.SelectedIndex = -1;
             _CB_GameMode.DrawItem += (s, e) =>
             {
@@ -236,6 +244,11 @@ namespace SysBot.Pokemon.WinForms
 
             this.BackColor = Color.FromArgb(28, 27, 65);
 
+            // Shrink action-button labels for languages whose translations overflow the
+            // fixed-width buttons (no-op for English and CJK). See FontManager.ButtonFontReduction.
+            foreach (var b in new[] { _B_Start, _B_Stop, _B_RebootStop, _updater, _B_Reload })
+                b.Font = FontManager.ScaleForLanguage(b.Font);
+
                 Controls.AddRange(new Control[] {
                 _B_Start, _B_Stop, _B_RebootStop, _updater, _B_New,
                 _B_Reload, _TB_IP, _NUD_Port, _CB_Protocol, _CB_Routine, _CB_GameMode,
@@ -244,6 +257,36 @@ namespace SysBot.Pokemon.WinForms
 
             Text = Strings.Get("BotsForm_Title", "Bots");
             Size = new Size(722, 53);
+
+            ApplyTheme();
+        }
+
+        /// <summary>
+        /// Recolors this form and all of its controls to the currently selected theme.
+        /// Called on construction and whenever the theme changes (via <see cref="Main.RefreshChildThemes"/>).
+        /// </summary>
+        public void ApplyTheme()
+        {
+            var colors = ThemeManager.CurrentColors;
+
+            BackColor = colors.PanelBase;
+            _FLP_Bots.BackColor = colors.ListBackground;
+
+            // Input controls
+            foreach (var box in new Control[] { _TB_IP, _NUD_Port, _CB_Protocol, _CB_Routine, _CB_GameMode })
+            {
+                box.BackColor = colors.ControlBackground;
+                box.ForeColor = colors.ForeColor;
+            }
+
+            _updateVersionLabel.ForeColor = colors.ForeColor;
+
+            // Cascade to the bot controllers hosted in the list
+            foreach (Control c in _FLP_Bots.Controls)
+            {
+                if (c is BotController controller)
+                    controller.ApplyTheme();
+            }
         }
 
         private void CB_GameMode_SelectedIndexChanged(object? sender, EventArgs e)
@@ -254,7 +297,7 @@ namespace SysBot.Pokemon.WinForms
             if (_CB_GameMode.SelectedIndex == -1)
                 return;
 
-            var selectedMode = _CB_GameMode.SelectedItem?.ToString();
+            var selectedMode = (_CB_GameMode.SelectedItem as GameModeItem)?.Code;
             ProgramMode newMode = selectedMode switch
             {
                 "SWSH" => ProgramMode.SWSH,
@@ -324,7 +367,15 @@ namespace SysBot.Pokemon.WinForms
                     _ => "SWSH"
                 };
 
-                int index = _CB_GameMode.Items.IndexOf(modeText);
+                int index = -1;
+                for (int i = 0; i < _CB_GameMode.Items.Count; i++)
+                {
+                    if (_CB_GameMode.Items[i] is GameModeItem gm && gm.Code == modeText)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
                 if (index >= 0)
                     _CB_GameMode.SelectedIndex = index;
             }
@@ -420,13 +471,35 @@ namespace SysBot.Pokemon.WinForms
             _CB_Routine.SelectedValue = (int)cfg.InitialRoutine;
         }
 
+        /// <summary>
+        /// Returns the localized label for a game mode, keyed by its canonical code
+        /// (e.g. "PLZA"). Falls back to the code itself (English) when no translation exists.
+        /// </summary>
+        private static string GameModeDisplay(string code) => Strings.Get("GameMode_" + code, code);
+
+        /// <summary>
+        /// Game mode dropdown entry: keeps the canonical <see cref="Code"/> for switch/selection
+        /// logic while displaying a localized label via <see cref="ToString"/>.
+        /// </summary>
+        private sealed class GameModeItem
+        {
+            public string Code { get; }
+            private readonly string _display;
+
+            public GameModeItem(string code, string display)
+            {
+                Code = code;
+                _display = display;
+            }
+
+            public override string ToString() => _display;
+        }
+
         private void StyleComboBox(ComboBox cb)
         {
-            Color darkBG = Color.FromArgb(20, 19, 57);
-            Color whiteText = Color.White;
-
-            cb.BackColor = darkBG;
-            cb.ForeColor = whiteText;
+            var colors = ThemeManager.CurrentColors;
+            cb.BackColor = colors.ControlBackground;
+            cb.ForeColor = colors.ForeColor;
             cb.DrawMode = DrawMode.OwnerDrawFixed;
             cb.FlatStyle = FlatStyle.Flat;
 
@@ -435,16 +508,19 @@ namespace SysBot.Pokemon.WinForms
                 if (s is not ComboBox combo) return;
                 e.DrawBackground();
 
-                // darker shade when selected
+                // Pull the live theme colors so the dropdown follows theme changes
+                var theme = ThemeManager.CurrentColors;
+
+                // lighter shade when selected
                 Color bgColor = (e.State & DrawItemState.Selected) == DrawItemState.Selected
-                    ? Color.FromArgb(40, 39, 87)
-                    : darkBG;
+                    ? theme.Highlight
+                    : theme.ControlBackground;
 
                 using (SolidBrush bg = new SolidBrush(bgColor))
                     e.Graphics.FillRectangle(bg, e.Bounds);
 
                 string text = combo.GetItemText(combo.Items[e.Index]) ?? string.Empty;
-                using (SolidBrush brush = new SolidBrush(whiteText))
+                using (SolidBrush brush = new SolidBrush(theme.ForeColor))
                     e.Graphics.DrawString(text, combo.Font, brush, e.Bounds);
             };
         }
@@ -464,7 +540,13 @@ namespace SysBot.Pokemon.WinForms
 
             if (isUpdateAvailable && !string.IsNullOrWhiteSpace(newVersion))
             {
-                _updateVersionLabel.Text = string.Format(Strings.Get("BotsForm_UpdateLabelFormat", "Update now to {0}"), newVersion);
+                _updateVersionLabel.Text = newVersion;
+
+                // Center the version text horizontally right above the update image
+                _updateVersionLabel.Location = new Point(
+                    _updateNotificationLabel.Left + (_updateNotificationLabel.Width - _updateVersionLabel.Width) / 2,
+                    _updateNotificationLabel.Top - _updateVersionLabel.Height - 2);
+
                 _updateVersionLabel.Visible = true;
                 _updateVersionLabel.BringToFront();
                 _updateNotificationLabel.Visible = true;
