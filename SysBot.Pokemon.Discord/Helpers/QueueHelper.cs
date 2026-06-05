@@ -213,7 +213,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 footerText += $"\n{userDetailsText}";
             }
             footerText += $"\n{etaMessage}";
-            footerText += $"\nFusionBot {TradeBot.Version}";
+            footerText += $"\nBot Hosted by NSider.co - {TradeBot.Version}";
 
             var embedBuilder = new EmbedBuilder()
                 .WithColor(embedColor)

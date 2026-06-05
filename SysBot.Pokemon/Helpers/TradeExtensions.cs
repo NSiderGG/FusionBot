@@ -11,11 +11,12 @@ namespace SysBot.Pokemon.Helpers;
 public abstract class TradeExtensions<T> where T : PKM, new()
 {
     // Global regex used by BOTH checks
-    public const string DomainPattern = @"\b[a-zA-Z0-9\-]{2,}\.(com|org|net|gg|xyz|io|tv|co|me|us|uk|ca|de|fr|jp|au|eu|ch|it|nl|ru|br|in)\b";
+    public const string DomainPattern = @"\b[a-zA-Z0-9\-]{2,}\.(xyz|tv|us|uk|ca|de|fr|jp|au|eu|ch|it|nl|ru|br|in)\b";
 
     private static readonly string[] AllowedDomains =
 {
     "PkmCafe.com",
+    "NSider.co",
     "https://discord.gg/NSider"
 };
 
