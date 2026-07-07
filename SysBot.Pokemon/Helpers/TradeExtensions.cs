@@ -16,7 +16,7 @@ public abstract class TradeExtensions<T> where T : PKM, new()
     private static readonly string[] AllowedDomains =
 {
     "PkmCafe.com",
-    "NSider.co",
+    "NSider.gg",
     "https://discord.gg/NSider"
 };
 
