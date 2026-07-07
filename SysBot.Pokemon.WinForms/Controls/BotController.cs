@@ -122,23 +122,23 @@ public partial class BotController : UserControl
 
         BackColor = colors.ControlBackground;
         rtbBotMeta.BackColor = colors.ControlBackground;
-        rtbBotMeta.ForeColor = colors.ForeColor;
+        rtbBotMeta.ForeColor = colors.ControllerForeColor;
 
         if (_progressBarContainer != null)
             _progressBarContainer.BackColor = colors.ControlBackground;
 
         btnActions.BackColor = colors.PanelBase;
-        btnActions.ForeColor = colors.ForeColor;
+        btnActions.ForeColor = colors.ControllerForeColor;
         btnActions.FlatAppearance.BorderColor = colors.Border;
         btnActions.FlatAppearance.MouseOverBackColor = colors.Highlight;
         btnActions.FlatAppearance.MouseDownBackColor = colors.Border;
 
         // Text labels follow the theme foreground (lblStatus stays state-colored).
-        lblConnectionName.ForeColor = colors.ForeColor;
+        lblConnectionName.ForeColor = colors.ControllerForeColor;
         if (lblConnectionInfo != null)
-            lblConnectionInfo.ForeColor = colors.ForeColor;
+            lblConnectionInfo.ForeColor = colors.ControllerForeColor;
         if (lblRoutine != null)
-            lblRoutine.ForeColor = colors.ForeColor;
+            lblRoutine.ForeColor = colors.ControllerForeColor;
     }
 
     private void _progressFill_Paint(object? sender, PaintEventArgs e)
@@ -484,7 +484,12 @@ public partial class BotController : UserControl
         _status = status;
         UpdateStatusUI(status);
 
-        lblConnectionName.Text = bot.Connection?.Label ?? "Unknown Connection";
+        // Show the IP/USB id, plus the in-game trainer once the bot connects and identifies
+        // (e.g. "192.168.1.161 Online as Gogeta/112025"). Falls back to the connection label
+        // for non-Poke executors.
+        lblConnectionName.Text = bot is PokeRoutineExecutorBase pkBot
+            ? pkBot.ConnectionDisplay
+            : bot.Connection?.Label ?? "Unknown Connection";
         lblConnectionInfo.Text = $"↪ {bot.LastLogged}";
         SetBotMetaDisplay(State.InitialRoutine.ToString(), bot.LastTime);
     }
@@ -505,7 +510,7 @@ public partial class BotController : UserControl
         {
             rtbBotMeta.SelectionFont = new Font(FontFamily.GenericSansSerif, 9F, FontStyle.Bold);
         }
-        rtbBotMeta.SelectionColor = ThemeManager.CurrentColors.ForeColor;
+        rtbBotMeta.SelectionColor = ThemeManager.CurrentColors.ControllerForeColor;
         rtbBotMeta.AppendText(topLine);
     }
 
