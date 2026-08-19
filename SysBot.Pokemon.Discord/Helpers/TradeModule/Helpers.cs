@@ -430,7 +430,7 @@ public static class Helpers<T> where T : PKM, new()
                  finalLanguage == (byte)LanguageID.ChineseT) &&
                 pkBeforeCheck.OriginalTrainerName.Length > 6)
             {
-                const string asianOT = "NSider.co";
+                const string asianOT = "NSider.GG";
                 pkBeforeCheck.OriginalTrainerName = asianOT;
                 // Simple property assignment leaves stale trash bytes from the previous
                 // longer OT ("FreeMons.Org"), which PKHeX's Trainer check flags as invalid.

@@ -14,7 +14,7 @@ public class LegalitySettings
 
     private const string Misc = nameof(Misc);
 
-    private string DefaultTrainerName = "NSider.co";
+    private string DefaultTrainerName = "NSider.GG";
 
     [HubDisplayName("LegalitySettings_AllowBatchCommands_DisplayName")]
     [HubCategory(Generate), HubDescription("LegalitySettings_AllowBatchCommands_Description")]

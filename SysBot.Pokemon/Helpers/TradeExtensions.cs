@@ -225,7 +225,7 @@ public abstract class TradeExtensions<T> where T : PKM, new()
         match = "";
         var lower = input.ToLowerInvariant();
 
-        // Allow only PkmCafe.com or NSider.com
+        // Allow only PkmCafe.com or NSider.gg
         foreach (var domain in AllowedDomains)
         {
             if (lower.Contains(domain))
