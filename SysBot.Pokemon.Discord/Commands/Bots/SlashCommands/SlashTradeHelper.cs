@@ -348,7 +348,7 @@ public static class SlashTradeHelper<T> where T : PKM, new()
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName(embedData.AuthorName)
                     .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                    .WithUrl("https://zepkm.com/pokecreator"));
+                    .WithUrl("http://www.NSider.GG/"));
 
             DetailsExtractor<T>.AddAdditionalText(embedBuilder);
 

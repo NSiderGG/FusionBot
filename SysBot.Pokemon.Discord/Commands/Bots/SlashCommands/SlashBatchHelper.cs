@@ -157,7 +157,7 @@ public static class SlashBatchHelper<T> where T : PKM, new()
             .WithAuthor(new EmbedAuthorBuilder()
                 .WithName($"{trader.Username}'s {summary.AuthorTitle}")
                 .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                .WithUrl("https://zepkm.com/pokecreator"));
+                .WithUrl("http://www.NSider.GG/"));
 
         if (!string.IsNullOrWhiteSpace(summary.ThumbnailUrl))
             builder.WithThumbnailUrl(summary.ThumbnailUrl);
@@ -210,7 +210,7 @@ public static class SlashBatchHelper<T> where T : PKM, new()
                     .WithAuthor(new EmbedAuthorBuilder()
                         .WithName(embedData.AuthorName)
                         .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                        .WithUrl("https://zepkm.com/pokecreator"));
+                        .WithUrl("http://www.NSider.GG/"));
 
                 DetailsExtractor<T>.AddAdditionalText(builder);
                 DetailsExtractor<T>.AddNormalTradeFields(builder, embedData, trader.Mention, pk);
